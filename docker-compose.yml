@@ -1,0 +1,59 @@
+version: '3.9'
+services:
+  mongodb:
+    container_name: ${MONGO_SERVICE_NAME}
+    env_file: .env
+    image: ${MONGO_IMAGE}
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASS}
+      - MONGO_INITDB_DATABASE=${MONGO_DEFAULT_DB}
+    networks:
+      - app-network
+  mongo-express:
+    container_name: ${MONGO_MANAGE_SERVICE_NAME}
+    image: ${MONGO_MANAGE_IMAGE}
+    restart: always
+    ports:
+      - ${MONGO_MANAGE_PORT}:${MONGO_MANAGE_PORT}
+    depends_on:
+      - mongodb
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
+      - ME_CONFIG_MONGODB_PORT=${MONGO_PORT}
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_ROOT_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_ROOT_PASS}
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_MANAGE_USER}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_MANAGE_PASS}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DEFAULT_DB}
+    networks:
+      - app-network
+
+  api:
+    container_name: ${COMPOSE_PROJECT_NAME}
+    env_file: .env
+    build:
+      context: .
+    #command: nodemon
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongodb
+    links:
+      - mongodb:mongodb
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules:
