@@ -14,19 +14,14 @@ docker-compose up
 
 # Without Docker (if you will use this option, you should fill mongodb auth creditentals in .envfile
 nodemon
-```
 
-
-```shell
 # lint check 
 npm run lint
-
-# run project with hotreload
-nodemon
 
 # run project with ts support
 ts-node src/server.ts
 ```
+
 
 #### Build
 ```shell
